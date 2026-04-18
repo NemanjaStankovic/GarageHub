@@ -4,6 +4,7 @@ public class Service
 
     public string Name { get; set; } = "";
     public decimal BasePrice { get; set; }
+    public bool IsActive { get; set; }
 
     public List<VehicleService> VehicleServices { get; set; } = new();
 }

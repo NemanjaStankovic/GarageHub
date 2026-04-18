@@ -7,4 +7,6 @@ public class User
 
     public bool IsActive { get; set; } = true;
     public List<Vehicle> Vehicles { get; set; } = new();
+    public List<VehicleService> AssignedVehicleServices { get; set; } = new();
+
 }
