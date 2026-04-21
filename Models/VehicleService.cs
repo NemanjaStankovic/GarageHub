@@ -14,7 +14,14 @@ public class VehicleService
     public DateTime RequestedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
 
-    public string Status { get; set; } = "";
+    public VehicleStatus Status { get; set; } = VehicleStatus.Available;
 
     public decimal PriceAtTime { get; set; }
+}
+
+public enum VehicleStatus
+{
+    Available,
+    InService,
+    Completed
 }
