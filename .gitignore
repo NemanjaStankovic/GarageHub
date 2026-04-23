@@ -1,7 +1,6 @@
+
 # ========================================
-
-# BUILD OUTPUT (ALL PROJECTS)
-
+# BUILD OUTPUT
 # ========================================
 
 **/bin/
@@ -12,12 +11,8 @@
 **/wwwroot/build/
 
 # ========================================
-
-# USER / IDE FILES
-
+# IDE FILES
 # ========================================
-
-# Visual Studio
 
 .vs/
 *.suo
@@ -25,40 +20,25 @@
 *.userosscache
 *.sln.docstates
 
-# VS Code
-
-.vscode/*
-!.vscode/settings.json
-!.vscode/launch.json
-!.vscode/tasks.json
-!.vscode/extensions.json
-
-# Rider
-
+.vscode/
 .idea/
 *.sln.iml
 
 # ========================================
-
 # LOGS
-
 # ========================================
 
 *.log
 
 # ========================================
-
 # OS FILES
-
 # ========================================
 
 .DS_Store
 Thumbs.db
 
 # ========================================
-
 # NUGET / PACKAGES
-
 # ========================================
 
 *.nupkg
@@ -68,47 +48,28 @@ packages/
 artifacts/
 
 # ========================================
-
-# ENVIRONMENT & SECRETS
-
+# SECRETS / ENV
 # ========================================
-
-# Env files
 
 .env
 .env.*
 !.env.example
 
-# .NET configs with secrets
-
 **/appsettings.Development.json
 **/appsettings.Local.json
 secrets.json
 
-# User secrets (CLI storage)
-
-**/secrets/*
-
+# ========================================
+# DATABASE (IMPORTANT)
 # ========================================
 
-# DATABASE / MIGRATIONS (OPTIONAL)
+*.db
+*.sqlite
+*.mdf
+*.ldf
 
 # ========================================
-
-# Uncomment ONLY if you generate DB locally and don't want to track it
-
-# *.db
-
-# *.sqlite
-
-# *.mdf
-
-# *.ldf
-
-# ========================================
-
 # TEST RESULTS
-
 # ========================================
 
 TestResults/
@@ -117,91 +78,18 @@ TestResults/
 *.coveragexml
 
 # ========================================
-
-# DOCKER
-
-# ========================================
-
-docker-compose.override.yml
-**/docker-data/
-**/volumes/
-
-# ========================================
-
 # FRONTEND (if exists)
-
 # ========================================
 
-frontend/node_modules/
-frontend/dist/
-frontend/build/
-frontend/.env
-frontend/.env.*
+node_modules/
+dist/
+build/
 
 # ========================================
-
-# STATIC FILE CACHE (API)
-
-# ========================================
-
-**/wwwroot/lib/
-**/wwwroot/*.map
-
-# ========================================
-
-# RESHARPER / ANALYZERS
-
-# ========================================
-
-_ReSharper*/
-*.DotSettings.user
-
-# ========================================
-
-# DOTNET CLI
-
-# ========================================
-
-.dotnet/
-
-# ========================================
-
 # TEMP FILES
-
 # ========================================
 
 *.tmp
 *.temp
 *.bak
 ~$*
-
-# ========================================
-
-# FILE UPLOADS (IMPORTANT FOR YOUR APP)
-
-# ========================================
-
-# If your GarageHub stores images/files locally:
-
-**/uploads/
-**/images/
-**/files/
-
-# ========================================
-
-# GENERATED CODE
-
-# ========================================
-
-# Swagger / OpenAPI generated clients (if any)
-
-**/Generated/
-
-# ========================================
-
-# KEEP IMPORTANT EMPTY FOLDERS
-
-# ========================================
-
-!**/uploads/.gitkeep
-!**/images/.gitkeep

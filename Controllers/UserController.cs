@@ -20,14 +20,19 @@ public class UserController : ControllerBase
         var user = new User
         {
             Email = dto.Email,
-            PasswordHash = dto.Password,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             Role = UserRole.Customer,
             IsActive = true
         };
         Context.Users.Add(user);
         await Context.SaveChangesAsync();
 
-        return Ok(await Context.Users.Where(u => u.Email == dto.Email).FirstOrDefaultAsync());
-
+        return Ok(new UserDto
+        {
+            Id = user.Id,
+            Email = user.Email,
+            Role = user.Role,
+            IsActive = user.IsActive
+        });
     }
 }
