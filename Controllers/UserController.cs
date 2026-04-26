@@ -11,29 +11,20 @@ public class UserController : ControllerBase
     {
         Context = context;
     }
-    [Route("user")]
+    [Route("register")]
     [HttpPost]
     public async Task<ActionResult<UserDto>> CreateUser(CreateUserDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Email))
-            return BadRequest("Email is required");
-        if (string.IsNullOrWhiteSpace(dto.Password))
-            return BadRequest("Password is required");
+        var emailNotVaild = this.ValidateEmail(dto.Email);
+        if (emailNotVaild != null)
+            return BadRequest(emailNotVaild);
+        var passwordNotValid = this.ValidatePassword(dto.Password);
+        if (passwordNotValid != null)
+            return BadRequest(passwordNotValid);
+
         var exists = await Context.Users.AnyAsync(u => u.Email == dto.Email);
         if (exists)
             return BadRequest("User already exists");
-
-        if (dto.Password.Length < 8)
-            return BadRequest("Password must be at least 8 characters long");
-
-        if (!dto.Password.Any(char.IsUpper))
-            return BadRequest("Password must contain at least one uppercase letter");
-
-        if (!dto.Password.Any(char.IsDigit))
-            return BadRequest("Password must contain at least one number");
-
-        if (!dto.Password.Any(ch => !char.IsLetterOrDigit(ch)))
-            return BadRequest("Password must contain at least one special character");
 
         var user = new User
         {
@@ -68,5 +59,49 @@ public class UserController : ControllerBase
             Role = user.Role,
             IsActive = user.IsActive
         });
+    }
+
+    [Route("login")]
+    [HttpPost]
+    public async Task<ActionResult<UserDto>> Login([FromBody] LoginDto login)
+    {
+        var user = await Context.Users.FirstOrDefaultAsync(u => u.Email == login.Email);
+
+        if (user == null || !BCrypt.Net.BCrypt.Verify(login.Password, user.PasswordHash))
+            return Unauthorized("Wrong email or password");
+        return Ok(new UserDto
+        {
+            Id = user.Id,
+            Email = user.Email,
+            Role = user.Role,
+            IsActive = user.IsActive
+        });
+    }
+
+
+    public string? ValidateEmail(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return "Email is required";
+        return null;
+    }
+
+    public string? ValidatePassword(string password)
+    {
+        if (string.IsNullOrWhiteSpace(password))
+            return "Password is required";
+
+        if (password.Length < 8)
+            return "Password must be at least 8 characters long";
+
+        if (!password.Any(char.IsUpper))
+            return "Password must contain at least one uppercase letter";
+
+        if (!password.Any(char.IsDigit))
+            return "Password must contain at least one number";
+
+        if (!password.Any(ch => !char.IsLetterOrDigit(ch)))
+            return "Password must contain at least one special character";
+        return null;
     }
 }
