@@ -78,7 +78,7 @@ public class UserController : ControllerBase
         });
     }
 
-
+    [NonAction]
     public string? ValidateEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email))
@@ -86,6 +86,7 @@ public class UserController : ControllerBase
         return null;
     }
 
+    [NonAction]
     public string? ValidatePassword(string password)
     {
         if (string.IsNullOrWhiteSpace(password))
