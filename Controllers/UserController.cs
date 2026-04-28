@@ -63,7 +63,7 @@ public class UserController : ControllerBase
             IsActive = user.IsActive
         });
     }
-
+    
     [HttpPost("login")]
     public async Task<ActionResult<UserDto>> Login([FromBody] LoginDto login)
     {
@@ -80,6 +80,7 @@ public class UserController : ControllerBase
         });
     }
 
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<ActionResult<UserDto>> GetUserById(int id)
     {
@@ -97,16 +98,14 @@ public class UserController : ControllerBase
         });
     }
 
-    [NonAction]
-    public string? ValidateEmail(string email)
+    private string? ValidateEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email))
             return "Email is required";
         return null;
     }
 
-    [NonAction]
-    public string? ValidatePassword(string password)
+    private string? ValidatePassword(string password)
     {
         if (string.IsNullOrWhiteSpace(password))
             return "Password is required";

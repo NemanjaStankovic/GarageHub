@@ -1,5 +1,6 @@
 using System.Data.Common;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,24 +17,17 @@ public class VehicleController: ControllerBase
         _authService = authService;
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<ActionResult<VehicleDto>> CreateVehicle(CreateVehicleDto vehicle)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userIdClaim = GetUserId();
 
-        if (userIdClaim == null)
-            return Unauthorized();
-
-        var userId = int.Parse(userIdClaim);
-        var user = await Context.Users.AnyAsync(u => u.Id == userId);
-        
-        if(!user)
-            return BadRequest("User doesnt exist");
         var createdVehicle = new Vehicle
         {
             Make = vehicle.Make,
             Model = vehicle.Model,
-            UserId = userId,
+            UserId = userIdClaim,
         };
 
         Context.Vehicles.Add(createdVehicle);
@@ -48,24 +42,40 @@ public class VehicleController: ControllerBase
         }); 
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<CreateVehicleDto>> GetVehicleById(int id)
+    [Authorize]
+    [HttpGet("my")]
+    public async Task<IActionResult> My()
+    {
+        var userId = GetUserId();
+        var vehicles = await Context.Vehicles
+            .Where(v => v.UserId == userId)
+            .Select(v => new VehicleDto
+            {
+                Id = v.Id, 
+                Make = v.Make, 
+                Model = v.Model, 
+                UserId = v.UserId
+            })
+            .ToListAsync();
+        
+        return Ok(vehicles);
+    }
+
+    [Authorize]
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<VehicleDto>> GetVehicleById(int id)
     {
 
         var role = User.FindFirst(ClaimTypes.Role)?.Value;
 
-        var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var currentUserId = GetUserId();
 
-        if(currentUserId == null)
-            return Unauthorized();
-
-        var currentUserIdInt = int.Parse(currentUserId);
         var vehicle = await Context.Vehicles.FirstOrDefaultAsync(u=>u.Id==id);
 
         if(vehicle == null)
             return NotFound();
 
-        if(role != "Admin" && vehicle.UserId != currentUserIdInt)
+        if(role != "Admin" && vehicle.UserId != currentUserId)
         {
             return NotFound();
         }
@@ -75,7 +85,16 @@ public class VehicleController: ControllerBase
             Id = vehicle.Id,
             Make = vehicle.Make,
             Model = vehicle.Model,
-            UserId = currentUserIdInt
+            UserId = vehicle.UserId
         });
+    }
+    private int GetUserId()
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userId == null)
+            throw new UnauthorizedAccessException();
+
+        return int.Parse(userId);
     }
 }
