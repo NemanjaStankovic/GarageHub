@@ -32,7 +32,6 @@ builder.Services
     });
 
 builder.Services.AddScoped<AuthService>();
-
 var app = builder.Build();
 
 app.UseAuthentication();
