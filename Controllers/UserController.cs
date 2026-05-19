@@ -1,18 +1,38 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 [ApiController]
 [Route("api/users")]
 public class UserController : ControllerBase
 {
     private readonly GarageDbContext Context;
+    private readonly AuthService _authService;
 
-    public UserController(GarageDbContext context)
+    public UserController(GarageDbContext context, AuthService authService)
     {
         Context = context;
+        _authService = authService;
     }
-    [Route("register")]
-    [HttpPost]
+
+    [Authorize]
+    [HttpGet("me")]
+    public IActionResult Me()
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var email = User.FindFirst(ClaimTypes.Email)?.Value;
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        
+        return Ok(new
+        {
+            userId,
+            email,
+            role
+        });
+    }
+
+    [HttpPost("register")]
     public async Task<ActionResult<UserDto>> CreateUser(CreateUserDto dto)
     {
         var emailNotVaild = this.ValidateEmail(dto.Email);
@@ -43,7 +63,24 @@ public class UserController : ControllerBase
             IsActive = user.IsActive
         });
     }
+    
+    [HttpPost("login")]
+    public async Task<ActionResult<UserDto>> Login([FromBody] LoginDto login)
+    {
+        var user = await Context.Users.FirstOrDefaultAsync(u => u.Email == login.Email);
 
+        if (user == null || !BCrypt.Net.BCrypt.Verify(login.Password, user.PasswordHash))
+            return Unauthorized("Wrong email or password");
+
+        var token = _authService.CreateToken(user);
+
+        return Ok(new
+        {
+            accessToken = token
+        });
+    }
+
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<ActionResult<UserDto>> GetUserById(int id)
     {
@@ -61,33 +98,14 @@ public class UserController : ControllerBase
         });
     }
 
-    [Route("login")]
-    [HttpPost]
-    public async Task<ActionResult<UserDto>> Login([FromBody] LoginDto login)
-    {
-        var user = await Context.Users.FirstOrDefaultAsync(u => u.Email == login.Email);
-
-        if (user == null || !BCrypt.Net.BCrypt.Verify(login.Password, user.PasswordHash))
-            return Unauthorized("Wrong email or password");
-        return Ok(new UserDto
-        {
-            Id = user.Id,
-            Email = user.Email,
-            Role = user.Role,
-            IsActive = user.IsActive
-        });
-    }
-
-    [NonAction]
-    public string? ValidateEmail(string email)
+    private string? ValidateEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email))
             return "Email is required";
         return null;
     }
 
-    [NonAction]
-    public string? ValidatePassword(string password)
+    private string? ValidatePassword(string password)
     {
         if (string.IsNullOrWhiteSpace(password))
             return "Password is required";
