@@ -16,6 +16,28 @@ public class UserController : ControllerBase
         _authService = authService;
     }
 
+    [HttpPost("addAdmin")]
+    public async Task<IActionResult> AddAdmin()
+    {
+        var admin = await Context.Users.FirstOrDefaultAsync(
+        u => u.Email == "admin@example.com");
+
+        if (admin == null)
+        {
+            Context.Users.Add(new User
+            {
+                Email = "admin@example.com",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+                Role = UserRole.Admin
+            });
+
+            await Context.SaveChangesAsync();
+            return Ok("Admin added");
+
+        }
+        return BadRequest("Admin already exists");
+    }
+
     [Authorize]
     [HttpGet("me")]
     public IActionResult Me()
@@ -23,7 +45,7 @@ public class UserController : ControllerBase
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var email = User.FindFirst(ClaimTypes.Email)?.Value;
         var role = User.FindFirst(ClaimTypes.Role)?.Value;
-        
+
         return Ok(new
         {
             userId,
@@ -63,7 +85,7 @@ public class UserController : ControllerBase
             IsActive = user.IsActive
         });
     }
-    
+
     [HttpPost("login")]
     public async Task<ActionResult<UserDto>> Login([FromBody] LoginDto login)
     {

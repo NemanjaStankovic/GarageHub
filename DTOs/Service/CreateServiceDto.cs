@@ -1,5 +1,5 @@
 public class CreateServiceDto
 {
     public string Name { get; set; }
-    public string BasePrice { get; set; }
+    public decimal BasePrice { get; set; }
 }
