@@ -105,7 +105,7 @@ public class VehicleController : ControllerBase
             return NotFound();
         }
 
-        if (vehicle.VehicleServices.Count>0 && role != "Admin")
+        if (vehicle.VehicleServices.Count > 0 && role != "Admin")
         {
             return BadRequest("Vehicle cannot be modified after service history exists! Contact Administartor.");
         }
@@ -140,7 +140,7 @@ public class VehicleController : ControllerBase
             return NotFound();
         }
 
-        if (vehicle.VehicleServices.Count>0 && role != "Admin")
+        if (vehicle.VehicleServices.Count > 0 && role != "Admin")
         {
             return BadRequest("Vehicle cannot be removed after service history exists! Contact Administartor.");
         }
