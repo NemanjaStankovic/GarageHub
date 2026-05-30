@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 [ApiController]
 [Route("api/vehicles")]
-public class VehicleController: ControllerBase
+public class VehicleController : ControllerBase
 {
     private readonly GarageDbContext Context;
     private readonly AuthService _authService;
@@ -39,7 +39,7 @@ public class VehicleController: ControllerBase
             Make = createdVehicle.Make,
             Model = createdVehicle.Model,
             UserId = createdVehicle.UserId,
-        }); 
+        });
     }
 
     [Authorize]
@@ -51,13 +51,13 @@ public class VehicleController: ControllerBase
             .Where(v => v.UserId == userId)
             .Select(v => new VehicleDto
             {
-                Id = v.Id, 
-                Make = v.Make, 
-                Model = v.Model, 
+                Id = v.Id,
+                Make = v.Make,
+                Model = v.Model,
                 UserId = v.UserId
             })
             .ToListAsync();
-        
+
         return Ok(vehicles);
     }
 
@@ -70,12 +70,12 @@ public class VehicleController: ControllerBase
 
         var currentUserId = GetUserId();
 
-        var vehicle = await Context.Vehicles.FirstOrDefaultAsync(u=>u.Id==id);
+        var vehicle = await Context.Vehicles.FirstOrDefaultAsync(u => u.Id == id);
 
-        if(vehicle == null)
+        if (vehicle == null)
             return NotFound();
 
-        if(role != "Admin" && vehicle.UserId != currentUserId)
+        if (role != "Admin" && vehicle.UserId != currentUserId)
         {
             return NotFound();
         }
@@ -88,6 +88,70 @@ public class VehicleController: ControllerBase
             UserId = vehicle.UserId
         });
     }
+
+    [Authorize]
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult<VehicleDto>> UpdateVehicleById(int id, [FromBody] CreateVehicleDto updatedVehicle)
+    {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        var currentUserId = GetUserId();
+        var vehicle = await Context.Vehicles.FirstOrDefaultAsync(u => u.Id == id);
+
+        if (vehicle == null)
+            return NotFound();
+
+        if (role != "Admin" && vehicle.UserId != currentUserId)
+        {
+            return NotFound();
+        }
+
+        if (vehicle.VehicleServices.Count>0 && role != "Admin")
+        {
+            return BadRequest("Vehicle cannot be modified after service history exists! Contact Administartor.");
+        }
+
+        vehicle.Make = updatedVehicle.Make;
+        vehicle.Model = updatedVehicle.Model;
+
+        await Context.SaveChangesAsync();
+        return Ok(new VehicleDto
+        {
+            Id = vehicle.Id,
+            Make = vehicle.Make,
+            Model = vehicle.Model,
+            UserId = vehicle.UserId
+        });
+
+    }
+
+    [Authorize]
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteVehicleById(int id)
+    {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        var currentUserId = GetUserId();
+        var vehicle = await Context.Vehicles.FirstOrDefaultAsync(u => u.Id == id);
+
+        if (vehicle == null)
+            return NotFound();
+
+        if (role != "Admin" && vehicle.UserId != currentUserId)
+        {
+            return NotFound();
+        }
+
+        if (vehicle.VehicleServices.Count>0 && role != "Admin")
+        {
+            return BadRequest("Vehicle cannot be removed after service history exists! Contact Administartor.");
+        }
+
+        Context.Vehicles.Remove(vehicle);
+        await Context.SaveChangesAsync();
+
+        return NoContent();
+
+    }
+
     private int GetUserId()
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
