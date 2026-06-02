@@ -130,6 +130,40 @@ public class VehicleServicesController : ControllerBase
             FinalPrice = vehicleService.FinalPrice
         });
     }
+    [Authorize(Roles = "Admin")]
+    [HttpPut("{id:int}/work")]
+    public async Task<ActionResult<VehicleServicesDto>> UpdateVehicleServicesWork(int id, [FromBody] UpdateVehicleServicesWorkDto vehSer)
+    {
+        var userId = GetUserId();
+        var vehicleService = await Context.VehicleServices.FirstOrDefaultAsync(vs => vs.Id == id);
+        if (vehicleService == null) return BadRequest("Vehicle service with this id doesnt exist!");
+        if (vehSer.Status != null && vehSer.Status != vehicleService.Status)
+        {
+            vehicleService.Status = (ServiceStatus)vehSer.Status;
+            if (vehSer.Status == ServiceStatus.Completed)
+            {
+                vehicleService.CompletedAt = DateTime.UtcNow;
+            }
+            vehicleService.MechanicNote +=
+                $"\n[{DateTime.UtcNow}] {vehSer.MechanicNote}";
+            vehicleService.FinalPrice = vehSer.FinalPrice ?? vehicleService.FinalPrice;
+            vehicleService.MechanicId = userId;
+        }
+        await Context.SaveChangesAsync();
+        return Ok(new VehicleServicesDto
+        {
+            Id = vehicleService.Id,
+            VehicleId = vehicleService.VehicleId,
+            ServiceId = vehicleService.ServiceId,
+            MechanicId = vehicleService.MechanicId,
+            CustomerDescription = vehicleService.CustomerDescription,
+            MechanicNote = vehicleService.MechanicNote,
+            RequestedAt = vehicleService.RequestedAt,
+            CompletedAt = vehicleService.CompletedAt,
+            Status = vehicleService.Status,
+            FinalPrice = vehicleService.FinalPrice
+        });
+    }
     private int GetUserId()
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
