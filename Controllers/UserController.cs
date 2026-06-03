@@ -38,6 +38,21 @@ public class UserController : ControllerBase
         return BadRequest("Admin already exists");
     }
 
+    [Authorize(Roles = "Admin")]
+    [HttpGet("mechanics")]
+    public async Task<IActionResult> GetAllMechanics()
+    {
+        var mechanics = Context.Users.Where(u => u.Role == UserRole.Mechanic).Select(v => new UserDto
+        {
+            Id = v.Id,
+            Email = v.Email,
+            Role = v.Role,
+            IsActive = v.IsActive
+        });
+        return Ok(mechanics);
+    }
+
+
     [Authorize]
     [HttpGet("me")]
     public IActionResult Me()
@@ -99,6 +114,39 @@ public class UserController : ControllerBase
         return Ok(new
         {
             accessToken = token
+        });
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("registerMechanic")]
+    public async Task<ActionResult<UserDto>> RegisterMechanic([FromBody] CreateUserDto userDto)
+    {
+        var emailNotVaild = this.ValidateEmail(userDto.Email);
+        if (emailNotVaild != null)
+            return BadRequest(emailNotVaild);
+        var passwordNotValid = this.ValidatePassword(userDto.Password);
+        if (passwordNotValid != null)
+            return BadRequest(passwordNotValid);
+
+        var exists = await Context.Users.AnyAsync(u => u.Email == userDto.Email);
+        if (exists)
+            return BadRequest("User already exists");
+
+        var user = new User
+        {
+            Email = userDto.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password),
+            Role = UserRole.Mechanic,
+            IsActive = true
+        };
+        Context.Users.Add(user);
+        await Context.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, new UserDto
+        {
+            Id = user.Id,
+            Email = user.Email,
+            Role = user.Role,
+            IsActive = user.IsActive
         });
     }
 
