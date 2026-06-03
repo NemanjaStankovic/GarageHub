@@ -48,6 +48,49 @@ public class VehicleServicesController : ControllerBase
             FinalPrice = vehicleService.FinalPrice
         });
     }
+
+    [Authorize]
+    [HttpGet("")]
+    public async Task<ActionResult<List<VehicleServicesDto>>> FilterVehicleServices([FromQuery] VehicleServiceQueryDto vehSer)
+    {
+        var currentUserId = GetUserId();
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        var vehicleServices = Context.VehicleServices.Include(vs => vs.Vehicle).AsQueryable();
+
+        if (role == "Customer")
+        {
+            vehicleServices = vehicleServices.Where(vs => vs.Vehicle != null && vs.Vehicle.UserId == currentUserId);
+        }
+
+        if (vehSer.MechanicId != null)
+        {
+            vehicleServices = vehicleServices.Where(vs => vs.MechanicId == vehSer.MechanicId);
+        }
+        if (vehSer.VehicleId != null)
+        {
+            vehicleServices = vehicleServices.Where(vs => vs.VehicleId == vehSer.VehicleId);
+        }
+        if (vehSer.ServiceStatuses != null && vehSer.ServiceStatuses.Any())
+        {
+            vehicleServices = vehicleServices.Where(vs => vehSer.ServiceStatuses.Contains(vs.Status));
+        }
+        var result = await vehicleServices.Select(vs => new VehicleServicesDto
+        {
+            Id = vs.Id,
+            VehicleId = vs.VehicleId,
+            ServiceId = vs.ServiceId,
+            MechanicId = vs.MechanicId,
+            CustomerDescription = vs.CustomerDescription,
+            MechanicNote = vs.MechanicNote,
+            RequestedAt = vs.RequestedAt,
+            CompletedAt = vs.CompletedAt,
+            Status = vs.Status,
+            FinalPrice = vs.FinalPrice
+        }
+        ).ToListAsync();
+        return Ok(result);
+    }
+
     [Authorize]
     [HttpGet("my")]
     public async Task<ActionResult<List<VehicleServicesDto>>> GetMyVehicleServices()
@@ -130,7 +173,7 @@ public class VehicleServicesController : ControllerBase
             FinalPrice = vehicleService.FinalPrice
         });
     }
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Mechanic")]
     [HttpPut("{id:int}/work")]
     public async Task<ActionResult<VehicleServicesDto>> UpdateVehicleServicesWork(int id, [FromBody] UpdateVehicleServicesWorkDto vehSer)
     {
@@ -140,6 +183,7 @@ public class VehicleServicesController : ControllerBase
         if (vehSer.Status != null && vehSer.Status != vehicleService.Status)
         {
             vehicleService.Status = (ServiceStatus)vehSer.Status;
+            vehicleService.MechanicId = userId;
             if (vehSer.Status == ServiceStatus.Completed)
             {
                 vehicleService.CompletedAt = DateTime.UtcNow;
