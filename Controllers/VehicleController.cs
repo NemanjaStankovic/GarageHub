@@ -95,7 +95,7 @@ public class VehicleController : ControllerBase
     {
         var role = User.FindFirst(ClaimTypes.Role)?.Value;
         var currentUserId = GetUserId();
-        var vehicle = await Context.Vehicles.FirstOrDefaultAsync(u => u.Id == id);
+        var vehicle = await Context.Vehicles.Include(v => v.VehicleServices).FirstOrDefaultAsync(u => u.Id == id);
 
         if (vehicle == null)
             return NotFound();
@@ -130,7 +130,7 @@ public class VehicleController : ControllerBase
     {
         var role = User.FindFirst(ClaimTypes.Role)?.Value;
         var currentUserId = GetUserId();
-        var vehicle = await Context.Vehicles.FirstOrDefaultAsync(u => u.Id == id);
+        var vehicle = await Context.Vehicles.Include(v => v.VehicleServices).FirstOrDefaultAsync(u => u.Id == id);
 
         if (vehicle == null)
             return NotFound();

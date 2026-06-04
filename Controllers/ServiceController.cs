@@ -14,7 +14,7 @@ public class ServiceController : ControllerBase
         Context = context;
     }
 
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [HttpGet("{id:int}")]
     public async Task<ActionResult<ServiceDto>> GetServiceById(int id)
     {
@@ -26,11 +26,6 @@ public class ServiceController : ControllerBase
         if (service == null)
             return NotFound();
 
-        if (role != "Admin")
-        {
-            return NotFound();
-        }
-
         return Ok(new ServiceDto
         {
             Id = service.Id,
@@ -38,6 +33,21 @@ public class ServiceController : ControllerBase
             BasePrice = service.BasePrice,
             IsActive = service.IsActive
         });
+    }
+
+    [Authorize]
+    [HttpGet]
+    public async Task<ActionResult<List<ServiceDto>>> GetServices()
+    {
+        return Ok(await Context.Services
+            .Select(s => new ServiceDto
+            {
+                Id = s.Id,
+                Name = s.Name,
+                BasePrice = s.BasePrice,
+                IsActive = s.IsActive
+            })
+            .ToListAsync());
     }
 
     [Authorize(Roles = "Admin")]

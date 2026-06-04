@@ -42,13 +42,13 @@ public class UserController : ControllerBase
     [HttpGet("mechanics")]
     public async Task<IActionResult> GetAllMechanics()
     {
-        var mechanics = Context.Users.Where(u => u.Role == UserRole.Mechanic).Select(v => new UserDto
+        var mechanics = await Context.Users.Where(u => u.Role == UserRole.Mechanic).Select(v => new UserDto
         {
             Id = v.Id,
             Email = v.Email,
             Role = v.Role,
             IsActive = v.IsActive
-        });
+        }).ToListAsync();
         return Ok(mechanics);
     }
 

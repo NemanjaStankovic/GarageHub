@@ -126,7 +126,11 @@ public class VehicleServicesController : ControllerBase
         if (vehicleService == null)
             return NotFound();
 
-        if (role != "Admin" && vehicleService.Vehicle?.UserId != currentUserId)
+        if (
+        role != "Admin" &&
+        vehicleService.Vehicle?.UserId != currentUserId &&
+        vehicleService.MechanicId != currentUserId
+        )
         {
             return NotFound();
         }
@@ -182,17 +186,24 @@ public class VehicleServicesController : ControllerBase
         if (vehicleService == null) return BadRequest("Vehicle service with this id doesnt exist!");
         if (vehSer.Status != null && vehSer.Status != vehicleService.Status)
         {
-            vehicleService.Status = (ServiceStatus)vehSer.Status;
-            vehicleService.MechanicId = userId;
+            vehicleService.Status = vehSer.Status.Value;
+
             if (vehSer.Status == ServiceStatus.Completed)
             {
                 vehicleService.CompletedAt = DateTime.UtcNow;
             }
-            vehicleService.MechanicNote +=
-                $"\n[{DateTime.UtcNow}] {vehSer.MechanicNote}";
-            vehicleService.FinalPrice = vehSer.FinalPrice ?? vehicleService.FinalPrice;
-            vehicleService.MechanicId = userId;
         }
+
+        if (!string.IsNullOrWhiteSpace(vehSer.MechanicNote))
+        {
+            vehicleService.MechanicNote +=
+                $"\n[{DateTime.UtcNow:u}] {vehSer.MechanicNote}";
+        }
+
+        vehicleService.FinalPrice =
+            vehSer.FinalPrice ?? vehicleService.FinalPrice;
+
+        vehicleService.MechanicId = userId;
         await Context.SaveChangesAsync();
         return Ok(new VehicleServicesDto
         {
