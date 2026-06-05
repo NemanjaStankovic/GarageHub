@@ -249,11 +249,10 @@ export function ServiceRequests() {
             key={value}
             type="button"
             onClick={() => setActiveFilter(value)}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-              activeFilter === value
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${activeFilter === value
                 ? 'bg-accent/15 text-accent'
                 : 'bg-surface-muted text-text-secondary hover:text-text-primary'
-            }`}
+              }`}
           >
             {label}
           </button>
