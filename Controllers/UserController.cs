@@ -150,8 +150,22 @@ public class UserController : ControllerBase
         });
     }
 
+    [Authorize(Roles = "Admin")]
+    [HttpGet("stats")]
+    public async Task<IActionResult> GetAdminStats()
+    {
+        return Ok(new
+        {
+            usersCount = await Context.Users.CountAsync(),
+            mechanicsCount = await Context.Users.CountAsync(u => u.Role == UserRole.Mechanic),
+            vehiclesCount = await Context.Vehicles.CountAsync(),
+            openRequestsCount = await Context.VehicleServices.CountAsync(vs =>
+                vs.Status == ServiceStatus.Requested || vs.Status == ServiceStatus.InService)
+        });
+    }
+
     [Authorize]
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
     public async Task<ActionResult<UserDto>> GetUserById(int id)
     {
         var user = await Context.Users.FirstOrDefaultAsync(u => u.Id == id);

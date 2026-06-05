@@ -2,6 +2,8 @@ public class VehicleServicesDto
 {
     public int Id { get; set; }
     public int VehicleId { get; set; }
+    public string? VehicleMake { get; set; }
+    public string? VehicleModel { get; set; }
     public int? ServiceId { get; set; }
     public int? MechanicId { get; set; }
 

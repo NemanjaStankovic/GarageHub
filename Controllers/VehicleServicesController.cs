@@ -21,13 +21,20 @@ public class VehicleServicesController : ControllerBase
     {
         var userId = GetUserId();
         var vehicle = await Context.Vehicles.FirstOrDefaultAsync(v => v.Id == vehSer.VehicleId);
-        var service = await Context.Services.FirstOrDefaultAsync(v => v.Id == vehSer.ServiceId);
         if (vehicle?.UserId != userId) return NotFound("You dont own vehicle with that id ");
-        if (service == null) return NotFound("Service with that id doesnt exist");
+
+        int? serviceId = vehSer.ServiceId is > 0 ? vehSer.ServiceId : null;
+
+        if (serviceId != null)
+        {
+            var service = await Context.Services.FirstOrDefaultAsync(v => v.Id == serviceId);
+            if (service == null) return NotFound("Service with that id doesnt exist");
+        }
+
         var vehicleService = new VehicleService
         {
             VehicleId = vehSer.VehicleId,
-            ServiceId = vehSer.ServiceId ?? null,
+            ServiceId = serviceId,
             CustomerDescription = vehSer.CustomerDescription,
             RequestedAt = DateTime.UtcNow,
         };
@@ -38,6 +45,8 @@ public class VehicleServicesController : ControllerBase
         {
             Id = vehicleService.Id,
             VehicleId = vehicleService.VehicleId,
+            VehicleMake = vehicle?.Make,
+            VehicleModel = vehicle?.Model,
             ServiceId = vehicleService.ServiceId,
             MechanicId = vehicleService.MechanicId,
             CustomerDescription = vehicleService.CustomerDescription,
@@ -78,6 +87,8 @@ public class VehicleServicesController : ControllerBase
         {
             Id = vs.Id,
             VehicleId = vs.VehicleId,
+            VehicleMake = vs.Vehicle != null ? vs.Vehicle.Make : null,
+            VehicleModel = vs.Vehicle != null ? vs.Vehicle.Model : null,
             ServiceId = vs.ServiceId,
             MechanicId = vs.MechanicId,
             CustomerDescription = vs.CustomerDescription,
@@ -100,6 +111,8 @@ public class VehicleServicesController : ControllerBase
         {
             Id = vs.Id,
             VehicleId = vs.VehicleId,
+            VehicleMake = vs.Vehicle!.Make,
+            VehicleModel = vs.Vehicle!.Model,
             ServiceId = vs.ServiceId,
             MechanicId = vs.MechanicId,
             CustomerDescription = vs.CustomerDescription,
@@ -139,6 +152,8 @@ public class VehicleServicesController : ControllerBase
         {
             Id = vehicleService.Id,
             VehicleId = vehicleService.VehicleId,
+            VehicleMake = vehicleService.Vehicle?.Make,
+            VehicleModel = vehicleService.Vehicle?.Model,
             ServiceId = vehicleService.ServiceId,
             MechanicId = vehicleService.MechanicId,
             CustomerDescription = vehicleService.CustomerDescription,
@@ -167,6 +182,8 @@ public class VehicleServicesController : ControllerBase
         {
             Id = vehicleService.Id,
             VehicleId = vehicleService.VehicleId,
+            VehicleMake = vehicleService.Vehicle?.Make,
+            VehicleModel = vehicleService.Vehicle?.Model,
             ServiceId = vehicleService.ServiceId,
             MechanicId = vehicleService.MechanicId,
             CustomerDescription = vehicleService.CustomerDescription,
@@ -182,7 +199,7 @@ public class VehicleServicesController : ControllerBase
     public async Task<ActionResult<VehicleServicesDto>> UpdateVehicleServicesWork(int id, [FromBody] UpdateVehicleServicesWorkDto vehSer)
     {
         var userId = GetUserId();
-        var vehicleService = await Context.VehicleServices.FirstOrDefaultAsync(vs => vs.Id == id);
+        var vehicleService = await Context.VehicleServices.Include(vs => vs.Vehicle).FirstOrDefaultAsync(vs => vs.Id == id);
         if (vehicleService == null) return BadRequest("Vehicle service with this id doesnt exist!");
         if (vehSer.Status != null && vehSer.Status != vehicleService.Status)
         {
@@ -209,6 +226,8 @@ public class VehicleServicesController : ControllerBase
         {
             Id = vehicleService.Id,
             VehicleId = vehicleService.VehicleId,
+            VehicleMake = vehicleService.Vehicle?.Make,
+            VehicleModel = vehicleService.Vehicle?.Model,
             ServiceId = vehicleService.ServiceId,
             MechanicId = vehicleService.MechanicId,
             CustomerDescription = vehicleService.CustomerDescription,

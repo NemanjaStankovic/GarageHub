@@ -94,7 +94,9 @@ PUT  /api/vehicle-services/{id}/work
 ### Admin
 ```
 POST /api/users/addAdmin
-POST /api/users/mechanics
+GET  /api/users/mechanics
+POST /api/users/registerMechanic
+GET  /api/services
 POST /api/services
 ```
 
