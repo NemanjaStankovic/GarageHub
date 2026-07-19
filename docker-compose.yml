@@ -1,13 +1,17 @@
 services:
 
   garagehub-api:
-    image: garagehub-api
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: garagehub-api
     ports:
       - "8080:8080"
 
   garagehub-frontend:
-    image: garagehub-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: garagehub-frontend
     ports:
       - "80:80"
