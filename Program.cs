@@ -45,11 +45,29 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<GarageDbContext>();
     db.Database.Migrate();
+
+    var adminExists = await db.Users.AnyAsync(u =>
+        u.Email == "admin@example.com");
+
+    if (!adminExists)
+    {
+        db.Users.Add(new User
+        {
+            Email = "admin@example.com",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+            Role = UserRole.Admin,
+            IsActive = true
+        });
+
+        await db.SaveChangesAsync();
+    }
 }
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapGet("/health", () => Results.Ok("Healthy"));
 
 app.Run();
