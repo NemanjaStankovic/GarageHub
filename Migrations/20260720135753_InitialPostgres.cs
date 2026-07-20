@@ -1,12 +1,13 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace GarageHub.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialPostgres : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,11 +16,11 @@ namespace GarageHub.Migrations
                 name: "Services",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    BasePrice = table.Column<decimal>(type: "TEXT", nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    BasePrice = table.Column<decimal>(type: "numeric", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -30,12 +31,12 @@ namespace GarageHub.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Email = table.Column<string>(type: "TEXT", nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", nullable: false),
-                    Role = table.Column<int>(type: "INTEGER", nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Email = table.Column<string>(type: "text", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: false),
+                    Role = table.Column<int>(type: "integer", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -46,10 +47,10 @@ namespace GarageHub.Migrations
                 name: "CustomerProfiles",
                 columns: table => new
                 {
-                    UserId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    UserId1 = table.Column<int>(type: "INTEGER", nullable: false),
-                    PhoneNumber = table.Column<string>(type: "TEXT", nullable: false)
+                    UserId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId1 = table.Column<int>(type: "integer", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -66,11 +67,11 @@ namespace GarageHub.Migrations
                 name: "MechanicProfiles",
                 columns: table => new
                 {
-                    UserId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    UserId1 = table.Column<int>(type: "INTEGER", nullable: false),
-                    Salary = table.Column<decimal>(type: "TEXT", nullable: false),
-                    Skills = table.Column<string>(type: "TEXT", nullable: false)
+                    UserId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId1 = table.Column<int>(type: "integer", nullable: false),
+                    Salary = table.Column<decimal>(type: "numeric", nullable: false),
+                    Skills = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -87,11 +88,11 @@ namespace GarageHub.Migrations
                 name: "Vehicles",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Make = table.Column<string>(type: "TEXT", nullable: false),
-                    Model = table.Column<string>(type: "TEXT", nullable: false),
-                    UserId = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Make = table.Column<string>(type: "text", nullable: false),
+                    Model = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -108,15 +109,17 @@ namespace GarageHub.Migrations
                 name: "VehicleServices",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    VehicleId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ServiceId = table.Column<int>(type: "INTEGER", nullable: false),
-                    MechanicId = table.Column<int>(type: "INTEGER", nullable: true),
-                    RequestedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    CompletedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    Status = table.Column<int>(type: "INTEGER", nullable: false),
-                    PriceAtTime = table.Column<decimal>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    VehicleId = table.Column<int>(type: "integer", nullable: false),
+                    ServiceId = table.Column<int>(type: "integer", nullable: true),
+                    MechanicId = table.Column<int>(type: "integer", nullable: true),
+                    CustomerDescription = table.Column<string>(type: "text", nullable: true),
+                    MechanicNote = table.Column<string>(type: "text", nullable: true),
+                    RequestedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    FinalPrice = table.Column<decimal>(type: "numeric", nullable: false)
                 },
                 constraints: table =>
                 {
