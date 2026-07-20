@@ -19,7 +19,7 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddDbContext<GarageDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
 builder.Services
