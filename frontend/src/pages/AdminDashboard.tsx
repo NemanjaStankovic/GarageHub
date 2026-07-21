@@ -46,6 +46,12 @@ export function AdminDashboard() {
   const [formError, setFormError] = useState<string | null>(null)
   const [formSuccess, setFormSuccess] = useState<string | null>(null)
 
+  const [serviceName, setServiceName] = useState('')
+  const [serviceBasePrice, setServiceBasePrice] = useState('')
+  const [isServiceSubmitting, setIsServiceSubmitting] = useState(false)
+  const [serviceError, setServiceError] = useState<string | null>(null)
+  const [serviceSuccess, setServiceSuccess] = useState<string | null>(null)
+
   const loadDashboard = useCallback(async () => {
     setLoadError(null)
     try {
@@ -134,6 +140,34 @@ export function AdminDashboard() {
     }
   }
 
+  async function handleCreateService(e: FormEvent) {
+    e.preventDefault()
+    setServiceError(null)
+    setServiceSuccess(null)
+    setIsServiceSubmitting(true)
+
+    try {
+      const parsedPrice = Number(serviceBasePrice)
+      if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
+        throw new Error('Enter a valid price.')
+      }
+
+      const created = await servicesApi.createService({
+        name: serviceName.trim(),
+        basePrice: parsedPrice,
+      })
+
+      setServiceName('')
+      setServiceBasePrice('')
+      setServiceSuccess(`Service "${created.name}" created successfully.`)
+      await loadServices()
+    } catch (err) {
+      setServiceError(err instanceof Error ? err.message : 'Failed to create service.')
+    } finally {
+      setIsServiceSubmitting(false)
+    }
+  }
+
   const mechanicOptions = useMemo(
     () => [{ id: 0, email: 'All mechanics', role: '', isActive: true }, ...mechanics],
     [mechanics],
@@ -179,6 +213,101 @@ export function AdminDashboard() {
             <StatCard label="Mechanics" value={stats.mechanicsCount} />
             <StatCard label="Vehicles" value={stats.vehiclesCount} />
             <StatCard label="Open requests" value={stats.openRequestsCount} />
+          </div>
+
+          <div className="mb-8 rounded-xl border border-border bg-surface-elevated p-5 glass-panel">
+            <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <h2 className="text-sm font-medium text-text-secondary">Service catalog</h2>
+                <p className="mt-1 text-xs text-text-secondary">
+                  Add service types and prices that will be available to customers and mechanics.
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleCreateService} className="mb-6 grid gap-4 lg:grid-cols-[2fr_1fr_auto] lg:items-end">
+              {serviceError && (
+                <p className="lg:col-span-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+                  {serviceError}
+                </p>
+              )}
+              {serviceSuccess && (
+                <p className="lg:col-span-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+                  {serviceSuccess}
+                </p>
+              )}
+
+              <div>
+                <label htmlFor="service-name" className="mb-1.5 block text-sm text-text-secondary">
+                  Service name
+                </label>
+                <input
+                  id="service-name"
+                  type="text"
+                  required
+                  value={serviceName}
+                  onChange={(e) => setServiceName(e.target.value)}
+                  placeholder="Oil change"
+                  className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="service-price" className="mb-1.5 block text-sm text-text-secondary">
+                  Price
+                </label>
+                <input
+                  id="service-price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  required
+                  value={serviceBasePrice}
+                  onChange={(e) => setServiceBasePrice(e.target.value)}
+                  placeholder="79.99"
+                  className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isServiceSubmitting}
+                className="rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-surface transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isServiceSubmitting ? 'Saving…' : 'Add service'}
+              </button>
+            </form>
+
+            {services.length === 0 ? (
+              <p className="text-sm text-text-secondary">No services available yet.</p>
+            ) : (
+              <div className="overflow-hidden rounded-lg border border-border">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-surface-muted text-text-secondary">
+                    <tr>
+                      <th className="px-4 py-3 font-medium">Service</th>
+                      <th className="px-4 py-3 font-medium">Base price</th>
+                      <th className="px-4 py-3 font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {services.map((service) => (
+                      <tr key={service.id} className="border-t border-border">
+                        <td className="px-4 py-3 font-medium">{service.name}</td>
+                        <td className="px-4 py-3">{service.basePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${service.isActive ? 'bg-emerald-500/15 text-emerald-400' : 'bg-surface-muted text-text-secondary'}`}
+                          >
+                            {service.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           <div className="mb-8 rounded-xl border border-border bg-surface-elevated p-5 glass-panel">
