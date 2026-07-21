@@ -1,25 +1,43 @@
-- name: Setup .NET
-  uses: actions/setup-dotnet@v4
-  with:
-    dotnet-version: '10.0.x'
+name: GarageHub CI
 
-- name: Restore backend dependencies
-  run: dotnet restore GarageHub.sln
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
-- name: Build backend
-  run: dotnet build GarageHub.sln --no-restore --configuration Release
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-- name: Setup Node.js
-  uses: actions/setup-node@v4
-  with:
-    node-version: '20'
-    cache: 'npm'
-    cache-dependency-path: frontend/package-lock.json
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-- name: Install frontend dependencies
-  working-directory: frontend
-  run: npm ci
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
 
-- name: Build frontend
-  working-directory: frontend
-  run: npm run build
+      - name: Restore backend dependencies
+        run: dotnet restore GarageHub.sln
+
+      - name: Build backend
+        run: dotnet build GarageHub.sln --no-restore --configuration Release
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
